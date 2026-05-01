@@ -2,13 +2,29 @@
 FROM python:3.12-slim AS deps
 
 WORKDIR /build
-COPY requirements.txt .
-RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+COPY requirements.runtime.txt .
+
+# Install CA certs and build tools required for some wheels, upgrade pip,
+# and retry installs to reduce failures due to transient network/SSL issues.
+RUN set -eux; \
+    apt-get update && apt-get install -y --no-install-recommends \
+        build-essential ca-certificates curl gcc g++ libssl-dev libffi-dev && \
+    rm -rf /var/lib/apt/lists/*; \
+    python -m pip install --upgrade pip setuptools wheel; \
+    for i in 1 2 3; do \
+        python -m pip install --no-cache-dir --prefix=/install -r requirements.runtime.txt && break || \
+        (echo "pip install failed, retrying ($i)..." && sleep 5); \
+    done
 
 # ── Stage 2: lean runtime image ────────────────────────────────────────────────
 FROM python:3.12-slim
 
 WORKDIR /app
+
+# Install curl for health checks.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl && \
+    rm -rf /var/lib/apt/lists/*
 
 # Copy installed packages from the build stage.
 COPY --from=deps /install /usr/local
