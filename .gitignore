@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Models & data (heavy / private)
+backend/saved_models/*.keras
+backend/saved_models/*.h5
+backend/saved_models/*.json
+backend/data/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# Kaggle
+kaggle.json
+*.zip

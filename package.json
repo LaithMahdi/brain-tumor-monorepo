@@ -1,0 +1,14 @@
+{
+  "name": "brain-tumor-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Full-stack monorepo for binary MRI tumor classification with 3 deep learning models (CNN, ResNet, MLP).",
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build",
+    "dev:backend": "cd backend && uvicorn app.main:app --reload --port 8000"
+  }
+}

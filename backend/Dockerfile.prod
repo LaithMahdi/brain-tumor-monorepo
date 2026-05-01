@@ -1,0 +1,31 @@
+# ── Stage 1: install Python dependencies ──────────────────────────────────────
+FROM python:3.12-slim AS deps
+
+WORKDIR /build
+COPY requirements.txt .
+RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
+
+# ── Stage 2: lean runtime image ────────────────────────────────────────────────
+FROM python:3.12-slim
+
+WORKDIR /app
+
+# Copy installed packages from the build stage.
+COPY --from=deps /install /usr/local
+
+# Copy only what's needed for inference (no training scripts, no raw data).
+COPY app/       ./app/
+COPY saved_models/ ./saved_models/
+
+ENV TF_ENABLE_ONEDNN_OPTS=0 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+EXPOSE 8000
+
+# 2 workers; tune with WEB_CONCURRENCY env var in deployment.
+CMD ["uvicorn", "app.main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--workers", "2", \
+     "--log-level", "warning"]
